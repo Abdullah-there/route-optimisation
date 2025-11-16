@@ -1,16 +1,13 @@
 package com.routeoptimization.backend.Controller;
 
-import com.routeoptimization.backend.Models.RouteEdge;
 import com.routeoptimization.backend.Models.OptimizeRequest;
 import com.routeoptimization.backend.Service.DijkstraService;
-import com.routeoptimization.backend.Service.RouteService;
-
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:3000") // React frontend
+@CrossOrigin(origins = "http://localhost:3000")
 public class RouteController {
 
    @PostMapping("/optimize")

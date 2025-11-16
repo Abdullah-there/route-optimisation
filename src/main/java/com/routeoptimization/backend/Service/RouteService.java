@@ -8,7 +8,6 @@ import java.util.*;
 public class RouteService {
 
     public Map<String, Object> calculateRoute(String start, String end) {
-        // Step 1: Create graph (sample nodes)
         Graph graph = new Graph();
         graph.addEdge("A", "B", 4);
         graph.addEdge("A", "C", 2);
@@ -18,13 +17,11 @@ public class RouteService {
         graph.addEdge("E", "D", 4);
         graph.addEdge("D", "F", 11);
 
-        // Step 2: Run Dijkstra
         List<String> path = Dijkstra.findShortestPath(graph, start, end);
 
-        // Step 3: Prepare response
         Map<String, Object> result = new HashMap<>();
         result.put("path", path);
-        result.put("distance", path.size() * 2.5); // dummy distance for now
+        result.put("distance", path.size() * 2.5);
         return result;
     }
 }

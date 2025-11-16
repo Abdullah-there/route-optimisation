@@ -1,4 +1,4 @@
-package com.routeoptimization.backend.Models; // adjust package as needed
+package com.routeoptimization.backend.Models;
 
 import java.util.List;
 

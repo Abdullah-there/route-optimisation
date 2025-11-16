@@ -67,9 +67,9 @@ Install the following extensions in **VS Code**:
 
 ---
 
-## 🔃 4. Clone or Fork the Repository
+## 4. Clone or Fork the Repository
 
-### ✔ Option A: Fork the repository
+### Option A: Fork the repository
 
 1. Go to the project repo:  
    🔗 https://github.com/Abdullah-there/route-optimisation
@@ -78,7 +78,7 @@ Install the following extensions in **VS Code**:
 
 ---
 
-### ✔ Option B: Clone the repository in VS Code
+### Option B: Clone the repository in VS Code
 
 1. Open **VS Code**
 2. Press **Ctrl + Shift + P**
@@ -89,20 +89,20 @@ Install the following extensions in **VS Code**:
 
 ---
 
-## ▶️ Running the Application
+## Running the Application
 
 You can run this project using Maven or using the VS Code debugger.
 
 ---
 
-### 🔹 Option 1: Run with Maven
+### Option 1: Run with Maven
 
 `mvn spring-boot:run`  
   
 
 ---
 
-### 🔹 Option 2: Run without Maven (Through VS Code Debugger)
+### Option 2: Run without Maven (Through VS Code Debugger)
 
 1. Open `BackendApplication.java`
 2. Click **Run ▶** at the top
@@ -114,12 +114,12 @@ VS Code (Java Extension Pack) handles build and execution automatically.
 
 ---
 
-## 💬 Support
+## Support
 
 If you face issues, open an **Issue** in the GitHub repository.
 
 ---
 
-## 📄 Repository Link
+## Repository Link
 
 🔗 https://github.com/Abdullah-there/route-optimisation

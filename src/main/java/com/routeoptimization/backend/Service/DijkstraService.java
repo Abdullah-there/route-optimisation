@@ -1,79 +1,90 @@
 package com.routeoptimization.backend.Service;
 
 import com.routeoptimization.backend.Models.RouteEdge;
+import org.springframework.stereotype.Service;
+
 import java.util.*;
 
+@Service
 public class DijkstraService {
 
-    /**
-     * @param routes 
-     * @param src    
-     * @param dest   
-     * @return 
-     */
-    public static List<Integer> shortestPath(List<RouteEdge> routes, int src, int dest) {
-        if (routes == null || routes.isEmpty()) {
+    private final SortingService sortingService;
+    private final SearchingService searchingService;
+
+    public DijkstraService(SortingService sortingService, SearchingService searchingService) {
+        this.sortingService = sortingService;
+        this.searchingService = searchingService;
+    }
+
+    /** Main shortest path function */
+    public List<Integer> dijkstra(List<RouteEdge> edges, int start, int end) {
+
+        if (edges == null || edges.isEmpty())
             throw new IllegalArgumentException("No routes provided");
+
+        // STEP 1 — Sort edges by weight using sorting service
+        sortingService.quickSort(edges, 0, edges.size() - 1);
+
+        // STEP 2 — Build adjacency list graph
+        Map<Integer, List<RouteEdge>> graph = new HashMap<>();
+
+        for (RouteEdge e : edges) {
+            graph.putIfAbsent(e.getFrom(), new ArrayList<>());
+            graph.get(e.getFrom()).add(e);
+
+            // Add reverse for undirected
+            graph.putIfAbsent(e.getTo(), new ArrayList<>());
+            graph.get(e.getTo())
+                .add(new RouteEdge(e.getTo(), e.getFrom(), e.getWeight()));
         }
 
-        int maxNode = 0;
-        for (RouteEdge r : routes) {
-            maxNode = Math.max(maxNode, Math.max(r.getFrom(), r.getTo()));
+        // STEP 3 — Prepare distance table
+        Map<Integer, Integer> dist = new HashMap<>();
+        Map<Integer, Integer> parent = new HashMap<>();
+        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[1]));
+
+        // Setup initial distances
+        for (RouteEdge e : edges) {
+            dist.put(e.getFrom(), Integer.MAX_VALUE);
+            dist.put(e.getTo(), Integer.MAX_VALUE);
         }
-        int n = maxNode + 1;
 
-        int[][] graph = new int[n][n];
-        for (RouteEdge r : routes) {
-            graph[r.getFrom()][r.getTo()] = r.getWeight();
-            graph[r.getTo()][r.getFrom()] = r.getWeight(); 
-        }
+        dist.put(start, 0);
+        parent.put(start, -1);
+        pq.add(new int[]{start, 0});
 
-        int[] dist = new int[n];
-        boolean[] visited = new boolean[n];
-        int[] parent = new int[n];
+        // STEP 4 — Dijkstra algorithm
+        while (!pq.isEmpty()) {
+            int[] top = pq.poll();
+            int node = top[0];
+            int cost = top[1];
 
-        Arrays.fill(dist, Integer.MAX_VALUE);
-        dist[src] = 0;
-        parent[src] = -1;
+            if (!graph.containsKey(node)) continue;
 
-        for (int i = 0; i < n - 1; i++) {
-            int u = findMin(dist, visited, n);
-            if (u == -1) break; 
-            visited[u] = true;
+            for (RouteEdge edge : graph.get(node)) {
+                int newCost = cost + edge.getWeight();
+                int neighbor = edge.getTo();
 
-            for (int v = 0; v < n; v++) {
-                if (!visited[v] && graph[u][v] > 0 &&
-                    dist[u] != Integer.MAX_VALUE &&
-                    dist[u] + graph[u][v] < dist[v]) {
-
-                    dist[v] = dist[u] + graph[u][v];
-                    parent[v] = u;
+                if (newCost < dist.get(neighbor)) {
+                    dist.put(neighbor, newCost);
+                    parent.put(neighbor, node);
+                    pq.add(new int[]{neighbor, newCost});
                 }
             }
         }
 
-        if (dist[dest] == Integer.MAX_VALUE) return Collections.emptyList();
+        // STEP 5 — If unreachable
+        if (!parent.containsKey(end)) return Collections.emptyList();
 
-        return buildPath(parent, dest);
-    }
-
-    private static int findMin(int[] dist, boolean[] visited, int n) {
-        int min = Integer.MAX_VALUE, index = -1;
-        for (int i = 0; i < n; i++) {
-            if (!visited[i] && dist[i] < min) {
-                min = dist[i];
-                index = i;
-            }
-        }
-        return index;
-    }
-
-    private static List<Integer> buildPath(int[] parent, int dest) {
+        // STEP 6 — Build path from end → start
         List<Integer> path = new ArrayList<>();
-        while (dest != -1) {
-            path.add(dest);
-            dest = parent[dest];
+        int curr = end;
+
+        while (curr != -1) {
+            path.add(curr);
+            curr = parent.get(curr);
         }
+
         Collections.reverse(path);
         return path;
     }

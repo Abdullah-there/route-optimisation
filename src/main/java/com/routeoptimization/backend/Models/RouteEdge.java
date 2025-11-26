@@ -5,6 +5,14 @@ public class RouteEdge {
     private int to;
     private int weight;
 
+     public RouteEdge() {}
+
+    public RouteEdge(int from, int to, int weight) {
+        this.from = from;
+        this.to = to;
+        this.weight = weight;
+    }
+
     public int getFrom() { return from; }
     public void setFrom(int from) { this.from = from; }
 

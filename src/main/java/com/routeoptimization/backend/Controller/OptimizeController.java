@@ -34,13 +34,11 @@ public class OptimizeController {
         System.out.println("Received End Node : " + req.dest);
         System.out.println("Received Routes   : " + req.routes.size());
 
-        // CALL DIJKSTRA SERVICE
         List<Integer> path = dijkstraService.dijkstra(req.routes, req.src, req.dest);
 
-        // If no path available
         if (path == null || path.isEmpty()) {
             System.out.println("No optimized path found!");
-            return List.of();  // return empty array to frontend
+            return List.of(); 
         }
 
         System.out.println("Optimized Path: " + path);

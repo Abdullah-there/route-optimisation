@@ -4,8 +4,7 @@ import com.routeoptimization.backend.Models.RouteEdge;
 import com.routeoptimization.backend.Requests.OptimizeRequest;
 import com.routeoptimization.backend.Service.DijkstraService;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import com.routeoptimization.backend.dsa.LinkedListManual;
 
 @RestController
 @RequestMapping("/api")
@@ -19,7 +18,7 @@ public class OptimizeController {
     }
 
     @PostMapping("/optimize")
-    public List<Integer> optimize(@RequestBody OptimizeRequest req) {
+    public int[] optimize(@RequestBody OptimizeRequest req) {
 
         if (req.routes == null || req.routes.isEmpty()) {
             throw new IllegalArgumentException("Route list is empty!");
@@ -33,19 +32,25 @@ public class OptimizeController {
         System.out.println("Received End Node : " + req.dest);
         System.out.println("Received Routes   : " + req.routes.size());
 
-        List<Integer> path = dijkstraService.dijkstra(req.routes, req.src, req.dest);
+        LinkedListManual<Integer> path = dijkstraService.dijkstra(req.routes, req.src, req.dest);
 
         if (path == null || path.isEmpty()) {
-            System.out.println("No optimized path found!");
-            return List.of(); 
+            return new int[0];
         }
 
-        System.out.println("Optimized Path: " + path);
-        return path;
+        Object[] objArr = path.toArray();
+        int[] result = new int[objArr.length];
+
+        for (int i = 0; i < objArr.length; i++) {
+            result[i] = (Integer) objArr[i];
+        }
+
+        return result;
+
     }
 
     @PostMapping("/shortest")
-    public List<Integer> shortest(@RequestBody OptimizeRequest req) {
+    public int[] shortest(@RequestBody OptimizeRequest req) {
 
         if (req.routes == null || req.routes.isEmpty()) {
             throw new IllegalArgumentException("Route list is empty!");
@@ -59,14 +64,19 @@ public class OptimizeController {
         System.out.println("Received End Node : " + req.dest);
         System.out.println("Received Routes   : " + req.routes.size());
 
-        List<Integer> path = dijkstraService.shortestPath(req.routes, req.src, req.dest);
+        LinkedListManual<Integer> path = dijkstraService.shortestPath(req.routes, req.src, req.dest);
 
         if (path == null || path.isEmpty()) {
-            System.out.println("No optimized path found!");
-            return List.of(); 
+            return new int[0];
         }
 
-        System.out.println("Optimized Path: " + path);
-        return path;
-    }    
+        Object[] objArr = path.toArray();
+        int[] result = new int[objArr.length];
+
+        for (int i = 0; i < objArr.length; i++) {
+            result[i] = (Integer) objArr[i];
+        }
+
+        return result;
+    }
 }

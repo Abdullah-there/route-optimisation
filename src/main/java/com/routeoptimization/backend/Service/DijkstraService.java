@@ -1,6 +1,8 @@
 package com.routeoptimization.backend.Service;
 
 import com.routeoptimization.backend.Models.RouteEdge;
+import com.routeoptimization.backend.dsa.LinkedListManual;
+import com.routeoptimization.backend.dsa.LinkedListMap;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -16,26 +18,22 @@ public class DijkstraService {
         this.searchingService = searchingService;
     }
 
-    public List<Integer> dijkstra(List<RouteEdge> edges, int start, int end) {
-
-        if (edges == null || edges.isEmpty())
-            throw new IllegalArgumentException("No routes provided");
+    public LinkedListManual<Integer> dijkstra(List<RouteEdge> edges, int start, int end) {
 
         sortingService.quickSort(edges, 0, edges.size() - 1);
 
-        Map<Integer, List<RouteEdge>> graph = new HashMap<>();
+        LinkedListMap<Integer, LinkedListManual<RouteEdge>> graph = new LinkedListMap<>();
 
         for (RouteEdge e : edges) {
-            graph.putIfAbsent(e.getFrom(), new ArrayList<>());
+            if (!graph.containsKey(e.getFrom())) graph.put(e.getFrom(), new LinkedListManual<>());
             graph.get(e.getFrom()).add(e);
 
-            graph.putIfAbsent(e.getTo(), new ArrayList<>());
-            graph.get(e.getTo())
-                .add(new RouteEdge(e.getTo(), e.getFrom(), e.getWeight()));
+            if (!graph.containsKey(e.getTo())) graph.put(e.getTo(), new LinkedListManual<>());
+            graph.get(e.getTo()).add(new RouteEdge(e.getTo(), e.getFrom(), e.getWeight()));
         }
 
-        Map<Integer, Integer> dist = new HashMap<>();
-        Map<Integer, Integer> parent = new HashMap<>();
+        LinkedListMap<Integer, Integer> dist = new LinkedListMap<>();
+        LinkedListMap<Integer, Integer> parent = new LinkedListMap<>();
         PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[1]));
 
         for (RouteEdge e : edges) {
@@ -52,13 +50,14 @@ public class DijkstraService {
             int node = top[0];
             int cost = top[1];
 
-            if (!graph.containsKey(node)) continue;
+            if (graph.get(node) == null) continue;
 
             for (RouteEdge edge : graph.get(node)) {
                 int newCost = cost + edge.getWeight();
                 int neighbor = edge.getTo();
 
-                if (newCost < dist.get(neighbor)) {
+                Integer neighborDist = dist.get(neighbor);
+                if (neighborDist == null || newCost < neighborDist) {
                     dist.put(neighbor, newCost);
                     parent.put(neighbor, node);
                     pq.add(new int[]{neighbor, newCost});
@@ -66,66 +65,69 @@ public class DijkstraService {
             }
         }
 
-        if (!parent.containsKey(end)) return Collections.emptyList();
+        LinkedListManual<Integer> path = new LinkedListManual<>();
+        if (!parent.containsKey(end)) return path;
 
-        List<Integer> path = new ArrayList<>();
+        Stack<Integer> stack = new Stack<>();
         int curr = end;
 
         while (curr != -1) {
-            path.add(curr);
+            stack.push(curr);
             curr = parent.get(curr);
         }
 
-        Collections.reverse(path);
+        while (!stack.isEmpty()) path.add(stack.pop());
+
         return path;
     }
 
-    public List<Integer> shortestPath(List<RouteEdge> edges, int start, int end) {
+    public LinkedListManual<Integer> shortestPath(List<RouteEdge> edges, int start, int end) {
 
-    Map<Integer, List<Integer>> graph = new HashMap<>();
+        LinkedListMap<Integer, LinkedListManual<Integer>> graph = new LinkedListMap<>();
 
-    for (RouteEdge e : edges) {
-        graph.putIfAbsent(e.getFrom(), new ArrayList<>());
-        graph.putIfAbsent(e.getTo(), new ArrayList<>());
+        for (RouteEdge e : edges) {
+            if (!graph.containsKey(e.getFrom())) graph.put(e.getFrom(), new LinkedListManual<>());
+            if (!graph.containsKey(e.getTo())) graph.put(e.getTo(), new LinkedListManual<>());
 
-        graph.get(e.getFrom()).add(e.getTo());
-        graph.get(e.getTo()).add(e.getFrom());
-    }
+            graph.get(e.getFrom()).add(e.getTo());
+            graph.get(e.getTo()).add(e.getFrom());
+        }
 
-    ArrayDeque<Integer> queue = new ArrayDeque<>();
-    Map<Integer, Integer> parent = new HashMap<>();
-    Set<Integer> visited = new HashSet<>();
+        ArrayDeque<Integer> queue = new ArrayDeque<>();
+        LinkedListMap<Integer, Integer> parent = new LinkedListMap<>();
+        LinkedListManual<Integer> visited = new LinkedListManual<>();
 
-    queue.add(start);
-    visited.add(start);
-    parent.put(start, -1);
+        queue.add(start);
+        visited.add(start);
+        parent.put(start, -1);
 
-    while (!queue.isEmpty()) {
-        int node = queue.remove();
+        while (!queue.isEmpty()) {
+            int node = queue.remove();
 
-        if (node == end) break;
+            if (node == end) break;
 
-        for (int neighbor : graph.get(node)) {
-            if (!visited.contains(neighbor)) {
-                visited.add(neighbor);
-                parent.put(neighbor, node);
-                queue.add(neighbor);
+            for (int neighbor : graph.get(node)) {
+                if (!visited.contains(neighbor)) {
+                    visited.add(neighbor);
+                    parent.put(neighbor, node);
+                    queue.add(neighbor);
+                }
             }
         }
+
+        LinkedListManual<Integer> path = new LinkedListManual<>();
+        if (!parent.containsKey(end)) return path;
+
+        Stack<Integer> stack = new Stack<>();
+        int curr = end;
+
+        while (curr != -1) {
+            stack.push(curr);
+            curr = parent.get(curr);
+        }
+
+        while (!stack.isEmpty()) path.add(stack.pop());
+
+        return path;
     }
-
-    if (!parent.containsKey(end)) return Collections.emptyList();
-
-    List<Integer> path = new ArrayList<>();
-    int curr = end;
-
-    while (curr != -1) {
-        path.add(curr);
-        curr = parent.get(curr);
-    }
-
-    Collections.reverse(path);
-    return path;
-}
-
 }

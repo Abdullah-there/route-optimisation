@@ -18,23 +18,33 @@ public class DijkstraService {
         this.searchingService = searchingService;
     }
 
-    public LinkedListManual<Integer> dijkstra(List<RouteEdge> edges, int start, int end) {
+    public LinkedListManual<Integer> dijkstra(
+            List<RouteEdge> edges,
+            int start,
+            int end) {
 
         sortingService.quickSort(edges, 0, edges.size() - 1);
 
         LinkedListMap<Integer, LinkedListManual<RouteEdge>> graph = new LinkedListMap<>();
 
         for (RouteEdge e : edges) {
-            if (!graph.containsKey(e.getFrom())) graph.put(e.getFrom(), new LinkedListManual<>());
-            graph.get(e.getFrom()).add(e);
+            if (!graph.containsKey(e.getFrom())) {
+                graph.put(e.getFrom(), new LinkedListManual<>());
+            }
+            if (!graph.containsKey(e.getTo())) {
+                graph.put(e.getTo(), new LinkedListManual<>());
+            }
 
-            if (!graph.containsKey(e.getTo())) graph.put(e.getTo(), new LinkedListManual<>());
-            graph.get(e.getTo()).add(new RouteEdge(e.getTo(), e.getFrom(), e.getWeight()));
+            graph.get(e.getFrom()).add(e);
+            graph.get(e.getTo()).add(
+                    new RouteEdge(e.getTo(), e.getFrom(), e.getWeight()));
         }
 
         LinkedListMap<Integer, Integer> dist = new LinkedListMap<>();
         LinkedListMap<Integer, Integer> parent = new LinkedListMap<>();
-        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[1]));
+        LinkedListMap<Integer, Integer> length = new LinkedListMap<>();
+
+        PriorityQueue<Integer> pq = new PriorityQueue<>(Comparator.comparingInt(dist::get));
 
         for (RouteEdge e : edges) {
             dist.put(e.getFrom(), Integer.MAX_VALUE);
@@ -42,55 +52,65 @@ public class DijkstraService {
         }
 
         dist.put(start, 0);
+        length.put(start, 0);
         parent.put(start, -1);
-        pq.add(new int[]{start, 0});
+        pq.add(start);
 
         while (!pq.isEmpty()) {
-            int[] top = pq.poll();
-            int node = top[0];
-            int cost = top[1];
+            int node = pq.poll();
 
-            if (graph.get(node) == null) continue;
+            if (node == end)
+                break;
 
             for (RouteEdge edge : graph.get(node)) {
-                int newCost = cost + edge.getWeight();
-                int neighbor = edge.getTo();
+                int newLen = length.get(node) + 1;
 
-                Integer neighborDist = dist.get(neighbor);
-                if (neighborDist == null || newCost < neighborDist) {
-                    dist.put(neighbor, newCost);
-                    parent.put(neighbor, node);
-                    pq.add(new int[]{neighbor, newCost});
+                int newCost = dist.get(node)
+                        + edge.getWeight() * 1
+                        + newLen * 2;
+
+                int to = edge.getTo();
+
+                if (newCost < dist.get(to)) {
+                    dist.put(to, newCost);
+                    length.put(to, newLen);
+                    parent.put(to, node);
+                    pq.add(to);
                 }
             }
         }
 
         LinkedListManual<Integer> path = new LinkedListManual<>();
-        if (!parent.containsKey(end)) return path;
+        if (!parent.containsKey(end))
+            return path;
 
         Stack<Integer> stack = new Stack<>();
-        int curr = end;
-
-        while (curr != -1) {
-            stack.push(curr);
-            curr = parent.get(curr);
+        for (int cur = end; cur != -1; cur = parent.get(cur)) {
+            stack.push(cur);
         }
 
-        while (!stack.isEmpty()) path.add(stack.pop());
+        while (!stack.isEmpty())
+            path.add(stack.pop());
 
         return path;
     }
 
-    public LinkedListManual<Integer> shortestPath(List<RouteEdge> edges, int start, int end) {
+    public LinkedListManual<Integer> shortestPath(
+            List<RouteEdge> edges, int start, int end) {
 
         LinkedListMap<Integer, LinkedListManual<Integer>> graph = new LinkedListMap<>();
 
         for (RouteEdge e : edges) {
-            if (!graph.containsKey(e.getFrom())) graph.put(e.getFrom(), new LinkedListManual<>());
-            if (!graph.containsKey(e.getTo())) graph.put(e.getTo(), new LinkedListManual<>());
+
+            if (!graph.containsKey(e.getFrom())) {
+                graph.put(e.getFrom(), new LinkedListManual<>());
+            }
+            if (!graph.containsKey(e.getTo())) {
+                graph.put(e.getTo(), new LinkedListManual<>());
+            }
 
             graph.get(e.getFrom()).add(e.getTo());
-            graph.get(e.getTo()).add(e.getFrom());
+            graph.get(e.getTo()).add(e.getFrom()); 
         }
 
         ArrayDeque<Integer> queue = new ArrayDeque<>();
@@ -102,11 +122,16 @@ public class DijkstraService {
         parent.put(start, -1);
 
         while (!queue.isEmpty()) {
-            int node = queue.remove();
+            int node = queue.poll();
 
-            if (node == end) break;
+            if (node == end)
+                break;
 
-            for (int neighbor : graph.get(node)) {
+            LinkedListManual<Integer> neighbors = graph.get(node);
+            if (neighbors == null)
+                continue;
+
+            for (int neighbor : neighbors) {
                 if (!visited.contains(neighbor)) {
                     visited.add(neighbor);
                     parent.put(neighbor, node);
@@ -116,7 +141,8 @@ public class DijkstraService {
         }
 
         LinkedListManual<Integer> path = new LinkedListManual<>();
-        if (!parent.containsKey(end)) return path;
+        if (!parent.containsKey(end))
+            return path;
 
         Stack<Integer> stack = new Stack<>();
         int curr = end;
@@ -126,7 +152,9 @@ public class DijkstraService {
             curr = parent.get(curr);
         }
 
-        while (!stack.isEmpty()) path.add(stack.pop());
+        while (!stack.isEmpty()) {
+            path.add(stack.pop());
+        }
 
         return path;
     }

@@ -2,6 +2,7 @@ package com.routeoptimization.backend.Service;
 
 import com.routeoptimization.backend.Requests.PlaygroundRequest;
 import com.routeoptimization.backend.Requests.PlaygroundRequestNode;
+import com.routeoptimization.backend.dsa.LinkedListPlay;
 import com.routeoptimization.backend.Entity.NodeEntity;
 import com.routeoptimization.backend.Entity.RouteEntity;
 import com.routeoptimization.backend.Models.PlaygroundDataDTO;
@@ -22,14 +23,16 @@ public class PlaygroundService {
         this.repos = repos;
     }
 
+    // Save routes from PlaygroundRequest
     public void saveRoutes(PlaygroundRequest request) {
         if (request == null || request.getUserId() == null || request.getPlaygroundName() == null) {
             throw new IllegalArgumentException("Request, userId and playgroundName are required");
         }
 
-        if (request.getRoutes() == null)
+        if (request.getRoutes() == null){
+            System.out.println("Here");
             return;
-        System.out.println(request.getRoutes());
+        }
 
         for (PlaygroundRequest.RouteDTO r : request.getRoutes()) {
             RouteEntity entity = new RouteEntity(
@@ -42,6 +45,7 @@ public class PlaygroundService {
         }
     }
 
+    // Save nodes from PlaygroundRequestNode
     public void saveNodes(PlaygroundRequestNode request) {
         if (request == null || request.getPlaygroundName() == null) {
             throw new IllegalArgumentException("Request and playgroundName are required");
@@ -61,15 +65,34 @@ public class PlaygroundService {
         }
     }
 
+    // Get playground with routes & nodes (converted to LinkedListPlay)
     public PlaygroundDataDTO getPlayground(String userid, String playgroundName) {
 
-        List<RouteEntity> routeEntities = repo.findByUseridAndPlaygroundName(userid, playgroundName);
-        List<NodeEntity> nodeEntities = repos.findByplaygroundName(playgroundName);
+        List<RouteEntity> dbRoutes = repo.findByUseridAndPlaygroundName(userid, playgroundName);
+        List<NodeEntity> dbNodes = repos.findByplaygroundName(playgroundName);
+
+        LinkedListPlay<RouteEntity> routeEntities = new LinkedListPlay<>();
+        LinkedListPlay<NodeEntity> nodeEntities = new LinkedListPlay<>();
+
+        for (RouteEntity r : dbRoutes) {
+            routeEntities.add(r);
+        }
+        for (NodeEntity n : dbNodes) {
+            nodeEntities.add(n);
+        }
 
         return new PlaygroundDataDTO(routeEntities, nodeEntities);
     }
 
-    public List<RouteEntity> getPlaygroundList(String userid) {
-        return repo.findByUserid(userid);
+    // Get all routes for a user
+    public LinkedListPlay<RouteEntity> getPlaygroundList(String userid) {
+        List<RouteEntity> dbRoutes = repo.findByUserid(userid);
+
+        LinkedListPlay<RouteEntity> routeEntities = new LinkedListPlay<>();
+        for (RouteEntity r : dbRoutes) {
+            routeEntities.add(r);
+        }
+
+        return routeEntities;
     }
 }

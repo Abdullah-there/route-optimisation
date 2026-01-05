@@ -22,7 +22,7 @@ public class RouteOptimizationService {
 
         for (int i = 0; i < routes.size(); i++) {
             OptimizeRequestmap.Route route = routes.get(i);
-            LinkedListMaps<double[]> coords = route.getCoordsLinked(); // use LinkedListMaps
+            LinkedListMaps<double[]> coords = route.getCoordsLinked();
 
             double length = calculateRouteLength(coords);
             double cost = (LENGTH_FACTOR * length) + (WEIGHT_FACTOR * route.getWeight());

@@ -6,7 +6,6 @@ import java.util.List;
 @Service
 public class SearchingService {
 
-    /** Binary Search on sorted node list */
     public Integer binarySearch(List<Integer> nodes, int target) {
         int left = 0, right = nodes.size() - 1;
 

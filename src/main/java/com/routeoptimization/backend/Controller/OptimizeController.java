@@ -31,6 +31,7 @@ public class OptimizeController {
         System.out.println("Received Start Node: " + req.src);
         System.out.println("Received End Node : " + req.dest);
         System.out.println("Received Routes   : " + req.routes.size());
+        System.out.println("Optimized");
 
         LinkedListManual<Integer> path = dijkstraService.dijkstra(req.routes, req.src, req.dest);
 
@@ -46,7 +47,6 @@ public class OptimizeController {
         }
 
         return result;
-
     }
 
     @PostMapping("/shortest")
@@ -63,6 +63,7 @@ public class OptimizeController {
         System.out.println("Received Start Node: " + req.src);
         System.out.println("Received End Node : " + req.dest);
         System.out.println("Received Routes   : " + req.routes.size());
+        System.out.println("Shortest");
 
         LinkedListManual<Integer> path = dijkstraService.shortestPath(req.routes, req.src, req.dest);
 

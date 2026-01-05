@@ -1,9 +1,6 @@
 package com.routeoptimization.backend.dsa;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
-public class LinkedListManual<T> implements Iterable<T> {
+public class LinkedListManual<T> {
 
     private static class Node<T> {
         T data;
@@ -61,29 +58,12 @@ public class LinkedListManual<T> implements Iterable<T> {
 
     public Object[] toArray() {
         Object[] arr = new Object[size];
+        Node<T> current = head;
         int i = 0;
-        for (T val : this) {
-            arr[i++] = val;
+        while (current != null) {
+            arr[i++] = current.data;
+            current = current.next;
         }
         return arr;
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        return new Iterator<>() {
-            Node<T> curr = head;
-
-            public boolean hasNext() {
-                return curr != null;
-            }
-
-            public T next() {
-                if (curr == null)
-                    throw new NoSuchElementException();
-                T data = curr.data;
-                curr = curr.next;
-                return data;
-            }
-        };
     }
 }

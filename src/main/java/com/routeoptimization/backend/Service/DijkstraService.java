@@ -1,11 +1,14 @@
 package com.routeoptimization.backend.Service;
 
 import com.routeoptimization.backend.Models.RouteEdge;
+import com.routeoptimization.backend.dsa.DoublyLinkedListPQ;
 import com.routeoptimization.backend.dsa.LinkedListManual;
-import com.routeoptimization.backend.dsa.LinkedListMap;
+import com.routeoptimization.backend.dsa.PQNode;
+import com.routeoptimization.backend.dsa.StackManual;
+import com.routeoptimization.backend.dsa.QueueManual;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
 
 @Service
 public class DijkstraService {
@@ -18,108 +21,95 @@ public class DijkstraService {
         this.searchingService = searchingService;
     }
 
-    public LinkedListManual<Integer> dijkstra(
-            List<RouteEdge> edges,
-            int start,
-            int end) {
-
-        sortingService.quickSort(edges, 0, edges.size() - 1);
-
-        LinkedListMap<Integer, LinkedListManual<RouteEdge>> graph = new LinkedListMap<>();
-
-        for (RouteEdge e : edges) {
-            if (!graph.containsKey(e.getFrom())) {
-                graph.put(e.getFrom(), new LinkedListManual<>());
-            }
-            if (!graph.containsKey(e.getTo())) {
-                graph.put(e.getTo(), new LinkedListManual<>());
-            }
-
-            graph.get(e.getFrom()).add(e);
-            graph.get(e.getTo()).add(
-                    new RouteEdge(e.getTo(), e.getFrom(), e.getWeight()));
+    public LinkedListManual<Integer> dijkstra(List<RouteEdge> edges, int start, int end) {
+        int maxNode = 0;
+        for (int i = 0; i < edges.size(); i++) {
+            RouteEdge e = edges.get(i);
+            maxNode = Math.max(maxNode, Math.max(e.getFrom(), e.getTo()));
         }
 
-        LinkedListMap<Integer, Integer> dist = new LinkedListMap<>();
-        LinkedListMap<Integer, Integer> parent = new LinkedListMap<>();
-        LinkedListMap<Integer, Integer> length = new LinkedListMap<>();
+        int[] dist = new int[maxNode + 1];
+        int[] parent = new int[maxNode + 1];
+        int[] pathLength = new int[maxNode + 1];
 
-        PriorityQueue<Integer> pq = new PriorityQueue<>(Comparator.comparingInt(dist::get));
-
-        for (RouteEdge e : edges) {
-            dist.put(e.getFrom(), Integer.MAX_VALUE);
-            dist.put(e.getTo(), Integer.MAX_VALUE);
+        for (int i = 0; i <= maxNode; i++) {
+            dist[i] = Integer.MAX_VALUE;
+            parent[i] = -1;
         }
 
-        dist.put(start, 0);
-        length.put(start, 0);
-        parent.put(start, -1);
-        pq.add(start);
+        DoublyLinkedListPQ pq = new DoublyLinkedListPQ();
+        dist[start] = 0;
+        pathLength[start] = 0;
+        pq.add(new PQNode(start, 0));
 
         while (!pq.isEmpty()) {
-            int node = pq.poll();
+            PQNode cur = pq.poll();
+            int u = cur.node;
 
-            if (node == end)
+            if (cur.cost > dist[u])
+                continue;
+            if (u == end)
                 break;
 
-            for (RouteEdge edge : graph.get(node)) {
-                int newLen = length.get(node) + 1;
+            for (int i = 0; i < edges.size(); i++) {
+                RouteEdge edge = edges.get(i);
+                int v = -1;
 
-                int newCost = dist.get(node)
-                        + edge.getWeight() * 1
-                        + newLen * 2;
+                if (edge.getFrom() == u)
+                    v = edge.getTo();
+                else if (edge.getTo() == u)
+                    v = edge.getFrom();
 
-                int to = edge.getTo();
+                if (v != -1) {
+                    int newLen = pathLength[u] + 1;
+                    int newCost = dist[u] + edge.getWeight() + (newLen * 2);
 
-                if (newCost < dist.get(to)) {
-                    dist.put(to, newCost);
-                    length.put(to, newLen);
-                    parent.put(to, node);
-                    pq.add(to);
+                    if (newCost < dist[v]) {
+                        dist[v] = newCost;
+                        pathLength[v] = newLen;
+                        parent[v] = u;
+                        pq.add(new PQNode(v, newCost));
+                    }
                 }
             }
         }
 
         LinkedListManual<Integer> path = new LinkedListManual<>();
-        if (!parent.containsKey(end))
+        if (parent[end] == -1 && start != end)
             return path;
 
-        Stack<Integer> stack = new Stack<>();
-        for (int cur = end; cur != -1; cur = parent.get(cur)) {
+        StackManual<Integer> stack = new StackManual<>();
+        for (int cur = end; cur != -1; cur = parent[cur]) {
             stack.push(cur);
         }
 
-        while (!stack.isEmpty())
+        while (!stack.isEmpty()) {
             path.add(stack.pop());
+        }
 
         return path;
     }
 
-    public LinkedListManual<Integer> shortestPath(
-            List<RouteEdge> edges, int start, int end) {
-
-        LinkedListMap<Integer, LinkedListManual<Integer>> graph = new LinkedListMap<>();
-
-        for (RouteEdge e : edges) {
-
-            if (!graph.containsKey(e.getFrom())) {
-                graph.put(e.getFrom(), new LinkedListManual<>());
-            }
-            if (!graph.containsKey(e.getTo())) {
-                graph.put(e.getTo(), new LinkedListManual<>());
-            }
-
-            graph.get(e.getFrom()).add(e.getTo());
-            graph.get(e.getTo()).add(e.getFrom()); 
+    public LinkedListManual<Integer> shortestPath(List<RouteEdge> edges, int start, int end) {
+        int maxNode = 0;
+        for (int i = 0; i < edges.size(); i++) {
+            RouteEdge e = edges.get(i);
+            if (e.getFrom() > maxNode)
+                maxNode = e.getFrom();
+            if (e.getTo() > maxNode)
+                maxNode = e.getTo();
         }
 
-        ArrayDeque<Integer> queue = new ArrayDeque<>();
-        LinkedListMap<Integer, Integer> parent = new LinkedListMap<>();
-        LinkedListManual<Integer> visited = new LinkedListManual<>();
+        int[] parent = new int[maxNode + 1];
+        boolean[] visited = new boolean[maxNode + 1];
 
+        for (int i = 0; i <= maxNode; i++) {
+            parent[i] = -1;
+        }
+
+        QueueManual<Integer> queue = new QueueManual<>();
         queue.add(start);
-        visited.add(start);
-        parent.put(start, -1);
+        visited[start] = true;
 
         while (!queue.isEmpty()) {
             int node = queue.poll();
@@ -127,29 +117,33 @@ public class DijkstraService {
             if (node == end)
                 break;
 
-            LinkedListManual<Integer> neighbors = graph.get(node);
-            if (neighbors == null)
-                continue;
+            for (int i = 0; i < edges.size(); i++) {
+                RouteEdge edge = edges.get(i);
+                int neighbor = -1;
 
-            for (int neighbor : neighbors) {
-                if (!visited.contains(neighbor)) {
-                    visited.add(neighbor);
-                    parent.put(neighbor, node);
+                if (edge.getFrom() == node)
+                    neighbor = edge.getTo();
+                else if (edge.getTo() == node)
+                    neighbor = edge.getFrom();
+
+                if (neighbor != -1 && !visited[neighbor]) {
+                    visited[neighbor] = true;
+                    parent[neighbor] = node;
                     queue.add(neighbor);
                 }
             }
         }
 
         LinkedListManual<Integer> path = new LinkedListManual<>();
-        if (!parent.containsKey(end))
+
+        if (!visited[end])
             return path;
 
-        Stack<Integer> stack = new Stack<>();
+        StackManual<Integer> stack = new StackManual<>();
         int curr = end;
-
         while (curr != -1) {
             stack.push(curr);
-            curr = parent.get(curr);
+            curr = parent[curr];
         }
 
         while (!stack.isEmpty()) {

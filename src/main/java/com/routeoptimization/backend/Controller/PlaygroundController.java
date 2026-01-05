@@ -6,7 +6,6 @@ import com.routeoptimization.backend.Entity.RouteEntity;
 import com.routeoptimization.backend.Service.PlaygroundService;
 import com.routeoptimization.backend.Models.PlaygroundDataDTO;
 import org.springframework.web.bind.annotation.*;
-import com.routeoptimization.backend.dsa.LinkedListPlay;
 
 import java.util.List;
 
@@ -42,7 +41,7 @@ public class PlaygroundController {
     }
 
     @GetMapping("/list")
-    public LinkedListPlay<RouteEntity> getPlayground(
+    public List<RouteEntity> getPlayground(
             @RequestParam String userid
     ) {
         

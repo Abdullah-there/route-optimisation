@@ -1,34 +1,38 @@
 package com.routeoptimization.backend.Service;
 
-import com.routeoptimization.backend.Models.RouteEdge;
+import com.routeoptimization.backend.Entity.RouteEntity;
 import org.springframework.stereotype.Service;
-import java.util.Collections;
 import java.util.List;
 
 @Service
 public class SortingService {
 
-    /** QuickSort by weight */
-    public void quickSort(List<RouteEdge> edges, int low, int high) {
+    public void quickSortEntitiesDesc(List<RouteEntity> entities, int low, int high) {
         if (low < high) {
-            int pi = partition(edges, low, high);
-            quickSort(edges, low, pi - 1);
-            quickSort(edges, pi + 1, high);
+            int pi = partitionEntities(entities, low, high);
+            quickSortEntitiesDesc(entities, low, pi - 1);
+            quickSortEntitiesDesc(entities, pi + 1, high);
         }
     }
 
-    private int partition(List<RouteEdge> edges, int low, int high) {
-        int pivot = edges.get(high).getWeight();
+    private int partitionEntities(List<RouteEntity> entities, int low, int high) {
+        Long pivot = entities.get(high).getId();
         int i = low - 1;
 
         for (int j = low; j < high; j++) {
-            if (edges.get(j).getWeight() <= pivot) {
+            if (entities.get(j).getId() >= pivot) {
                 i++;
-                Collections.swap(edges, i, j);
+                swap(entities, i, j);
             }
         }
 
-        Collections.swap(edges, i + 1, high);
+        swap(entities, i + 1, high);
         return i + 1;
+    }
+
+    private void swap(List<RouteEntity> entities, int i, int j) {
+        RouteEntity temp = entities.get(i);
+        entities.set(i, entities.get(j));
+        entities.set(j, temp);
     }
 }
